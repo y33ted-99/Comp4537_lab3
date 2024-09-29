@@ -1,5 +1,3 @@
-// server.js
-
 const express = require('express');
 const Utils = require('./modules/Utils');
 const fs = require('fs');
@@ -13,11 +11,22 @@ class Server {
   }
 
   routes() {
-    this.app.get('/getDate', (req, res) => {
-      const name = req.query.name || 'Guest';
-      const message = Utils.getGreeting(name);
-      res.send(`<div style="color: blue;">${message}</div>`);
+
+    this.app.get('/', (req, res) => {
+        res.send('Welcome to the API!');
     });
+
+    this.app.get('/getDate', (req, res) => {
+        const name = req.query.name || 'Guest';
+        const message = Utils.getGreetingMessage(name);
+        res.send(`<div style="color:blue;">${message}</div>`);
+    });
+
+    // this.app.get('/getDate', (req, res) => {
+    //   const name = req.query.name || 'Guest';
+    //   const message = Utils.getGreeting(name);
+    //   res.send(`<div style="color: blue;">${message}</div>`);
+    // });
 
     this.app.get('/writeFile', (req, res) => {
       const text = req.query.text;
