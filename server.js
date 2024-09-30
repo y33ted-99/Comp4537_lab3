@@ -58,7 +58,20 @@ class Server {
                       res.end(`<pre>${data}</pre>`);
                   }
               });  
-            } else {
+            } else if (path === '/') {
+              const homepageContent = `
+                  <h1>Welcome to COMP4537 Lab 3</h1>
+                  <p>This is a simple Node.js server.</p>
+                  <h2>Available Endpoints:</h2>
+                  <ul>
+                      <li><a href="/COMP4537/labs/3/getDate/?name=John">Get Date</a></li>
+                      <li><a href="/COMP4537/labs/3/writeFile/?text=BCIT">Write File</a></li>
+                      <li><a href="/COMP4537/labs/3/readFile/file.txt">Read File</a></li>
+                  </ul>
+              `;
+              res.writeHead(200, { 'Content-Type': 'text/html' });
+              res.end(homepageContent);
+             } else {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
                 res.end(`<p style="color:red">${messages.invalidEndpoint}</p>`);
             }
