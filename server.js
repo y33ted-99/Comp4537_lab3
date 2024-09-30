@@ -65,7 +65,7 @@ class Server {
                   <h2>Available Endpoints:</h2>
                   <ul>
                       <li><a href="/COMP4537/labs/3/getDate/?name=John">Get Date</a></li>
-                      <li><a href="/COMP4537/labs/3/writeFile/?text=HelloWorld">Write File</a></li>
+                      <li><a href="/COMP4537/labs/3/writeFile/?text=BCIT">Write File</a></li>
                       <li><a href="/COMP4537/labs/3/readFile/file.txt">Read File</a></li>
                   </ul>
               `;
