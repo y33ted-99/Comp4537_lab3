@@ -1,23 +1,33 @@
-// modules/Utils.js
+const fs = require('fs');
+const path = require('path');
 
 class Utils {
-    static getDate() {
-      return new Date().toString();
+    getDate() {
+        return new Date().toString();
     }
-  
-    // static getGreeting(name) {
-    //   const greeting = require('../lang/en/en.json');
-    //   return `${greeting.message} ${name}. Server current date and time is ${this.getDate()}`;
-    // }
 
-    static getGreetingMessage(name) {
-        const filePath = path.join(__dirname, '../lang/en/en.json');
-        const langFile = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-
-        const currentDate = this.getDate();
-        return langFile.greetingMessage.replace('%1', name).replace('%2', currentDate);
+    getGreetingMessage(name, greetingTemplate) {
+        const currentTime = this.getDate();
+        return greetingTemplate.replace('%1', name).replace('%2', currentTime);
     }
+
+    writeToFile(text, callback) {
+      const filePath = path.join(__dirname, '../file.txt');
+
+      fs.writeFile(filePath, text + '\n', { flag: 'a' }, (err) => {
+          callback(err);
+      });
   }
-  
-  module.exports = Utils;
-  
+
+  readFromFile(filePath, callback) {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, data);
+        }
+    });
+}
+}
+
+module.exports = Utils;

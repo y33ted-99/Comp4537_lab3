@@ -1,62 +1,87 @@
-const express = require('express');
+const http = require('http');
+const url = require('url');
 const Utils = require('./modules/Utils');
 const fs = require('fs');
-const path = require('path');
+
+const messages = JSON.parse(fs.readFileSync('./lang/en/en.json', 'utf-8'));
 
 class Server {
-  constructor() {
-    this.app = express();
-    this.port = process.env.PORT || 3000;
-    this.routes();
-  }
+    constructor() {
+        this.utils = new Utils();
+    }
 
-  routes() {
+    start() {
+        const server = http.createServer((req, res) => {
+            const parsedUrl = url.parse(req.url, true);
+            const path = parsedUrl.pathname;
+            const query = parsedUrl.query;
 
-    this.app.get('/', (req, res) => {
-        res.send('Welcome to the API!');
-    });
+            if (path === '/COMP4537/labs/3/getDate/') {
+                const name = query.name;
+                if (name) {
+                    const message = this.utils.getGreetingMessage(name, messages.greeting);
+                    res.writeHead(200, { 'Content-Type': 'text/html' });
+                    res.end(`<p style="color:blue">${message}</p>`);
+                } else {
+                    res.writeHead(400, { 'Content-Type': 'text/html' });
+                    res.end(`<p style="color:red">${messages.missingName}</p>`);
+                }
 
-    this.app.get('/getDate', (req, res) => {
-        const name = req.query.name || 'Guest';
-        const message = Utils.getGreetingMessage(name);
-        res.send(`<div style="color:blue;">${message}</div>`);
-    });
+            } else if (path === '/COMP4537/labs/3/writeFile/') {
+                const text = query.text;
+                if (text) {
+                    this.utils.writeToFile(text, (err) => {
+                        if (err) {
+                            res.writeHead(500, { 'Content-Type': 'text/html' });
+                            res.end(`<p style="color:red">${messages.writeError}</p>`);
+                        } else {
+                            res.writeHead(200, { 'Content-Type': 'text/html' });
+                            res.end(`<p style="color:green">${messages.writeSuccess}</p>`);
+                        }
+                    });
+                } else {
+                    res.writeHead(400, { 'Content-Type': 'text/html' });
+                    res.end(`<p style="color:red">${messages.missingText}</p>`);
+                }
 
-    // this.app.get('/getDate', (req, res) => {
-    //   const name = req.query.name || 'Guest';
-    //   const message = Utils.getGreeting(name);
-    //   res.send(`<div style="color: blue;">${message}</div>`);
-    // });
+            } else if (path.startsWith('/COMP4537/labs/3/readFile/')) {
+              const requestedFile = path.split('/').pop(); 
+              const filePath = `./${requestedFile}`; 
 
-    this.app.get('/writeFile', (req, res) => {
-      const text = req.query.text;
-      const filePath = path.join(__dirname, 'file.txt');
+              this.utils.readFromFile(filePath, (err, data) => {
+                  if (err) {
+                      const errorMessage = messages.fileNotFound.replace('%1', requestedFile);
+                      res.writeHead(404, { 'Content-Type': 'text/html' });
+                      res.end(`<p style="color:red">${errorMessage}</p>`);
+                  } else {
+                      res.writeHead(200, { 'Content-Type': 'text/html' });
+                      res.end(`<pre>${data}</pre>`);
+                  }
+              });  
+            } else if (path === '/') {
+              const homepageContent = `
+                  <h1>Welcome to COMP4537 Lab 3</h1>
+                  <p>This is a simple Node.js server.</p>
+                  <h2>Available Endpoints:</h2>
+                  <ul>
+                      <li><a href="/COMP4537/labs/3/getDate/?name=John">Get Date</a></li>
+                      <li><a href="/COMP4537/labs/3/writeFile/?text=HelloWorld">Write File</a></li>
+                      <li><a href="/COMP4537/labs/3/readFile/file.txt">Read File</a></li>
+                  </ul>
+              `;
+              res.writeHead(200, { 'Content-Type': 'text/html' });
+              res.end(homepageContent);
+             } else {
+                res.writeHead(404, { 'Content-Type': 'text/html' });
+                res.end(`<p style="color:red">${messages.invalidEndpoint}</p>`);
+            }
+        });
 
-      fs.appendFile(filePath, text + '\n', { flag: 'a+' }, (err) => {
-        if (err) {
-          return res.status(500).send('Error writing to file');
-        }
-        res.send('Text appended successfully');
-      });
-    });
-
-    this.app.get('/readFile/:filename', (req, res) => {
-      const filePath = path.join(__dirname, req.params.filename);
-      fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-          return res.status(404).send(`File not found: ${req.params.filename}`);
-        }
-        res.send(`<pre>${data}</pre>`);
-      });
-    });
-  }
-
-  start() {
-    this.app.listen(this.port, () => {
-      console.log(`Server running on port ${this.port}`);
-    });
-  }
+        server.listen(3000, () => {
+            console.log('Server running on port 3000');
+        });
+    }
 }
 
-const server = new Server();
-server.start();
+const myServer = new Server();
+myServer.start();
